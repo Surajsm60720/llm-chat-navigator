@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LLM Chat Navigator</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">📑 Your Messages</h1>
+      <div class="site-info" id="siteInfo"></div>
+    </header>
+
+    <div class="controls">
+      <button id="refreshBtn" class="btn-refresh" title="Refresh message list">
+        🔄 Refresh
+      </button>
+      <div class="message-count" id="messageCount">0 messages</div>
+    </div>
+
+    <div class="search-box">
+      <input 
+        type="text" 
+        id="searchInput" 
+        placeholder="Search your messages..." 
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="message-list-container">
+      <ul class="message-list" id="messageList">
+        <!-- Messages will be populated here -->
+      </ul>
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">💬</div>
+        <p>No messages found</p>
+        <p class="empty-hint">Send a message in the chat to see it here</p>
+      </div>
+      <div class="loading-state" id="loadingState">
+        <div class="spinner"></div>
+        <p>Loading messages...</p>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <p class="tip">💡 Click any message to jump to it in the chat</p>
+      <p class="tip tip-small" id="pinTip" style="display: none;">
+        📌 <a href="#" id="pinExtensionLink">Pin this extension</a> to toolbar for quick access
+      </p>
+    </footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
