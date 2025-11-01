@@ -20,7 +20,13 @@
     "https://chatgpt.com/*"
   ],
   "background": {
-    "service_worker": "background.js"
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "llm-chat-navigator@surajsm60720.github.io"
+    }
   },
   "action": {
     "default_popup": "popup.html",

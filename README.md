@@ -33,7 +33,7 @@ LLM Chat Navigator creates a searchable index of your messages in a conversation
 1.  **Download the Extension**:
     - Clone this repository or download it as a ZIP file.
       ```bash
-      git clone https://github.com/yourusername/llm-chat-navigator.git
+      git clone https://github.com/surajsm60720/llm-chat-navigator.git
       ```
 
 2.  **Open Extension Management**:
