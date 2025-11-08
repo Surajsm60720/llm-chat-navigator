@@ -4,7 +4,7 @@ A Chrome extension to help you navigate your conversations with Large Language M
 
 ## The Problem
 
-When using LLM chat platforms like ChatGPT, Gemini, or Claude, conversations can become very long. Finding a specific message or prompt often requires a lot of scrolling, which can be time-consuming and inefficient.
+When using LLM chat platforms like ChatGPT and Gemini, conversations can become very long. Finding a specific message or prompt often requires a lot of scrolling, which can be time-consuming and inefficient.
 
 ## The Solution
 
@@ -24,7 +24,6 @@ LLM Chat Navigator creates a searchable index of your messages in a conversation
 
 - ChatGPT (chat.openai.com & chatgpt.com)
 - Google Gemini (gemini.google.com)
-- Claude (claude.ai)
 
 ## Installation
 

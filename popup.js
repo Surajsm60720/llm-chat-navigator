@@ -174,10 +174,25 @@ function setupEventListeners() {
   // Refresh button
   refreshBtn.addEventListener('click', async () => {
     refreshBtn.classList.add('spinning');
-    await loadMessages();
-    setTimeout(() => {
+    try {
+      // First, tell content script to rescan the page
+      try {
+        await chrome.tabs.sendMessage(currentTabId, { type: 'RESCAN' });
+      } catch (rescanError) {
+        console.warn('[LLM Chat Navigator] Rescan failed, continuing anyway:', rescanError);
+      }
+      // Then reload the messages
+      await loadMessages();
+    } catch (error) {
+      console.error('[LLM Chat Navigator] Error during refresh:', error);
+      // Only show error if we don't have any messages already
+      if (allMessages.length === 0) {
+        showError('Unable to refresh. Make sure you\'re on a supported chat page.');
+      }
+    } finally {
+      // Always remove spinner, even if there's an error
       refreshBtn.classList.remove('spinning');
-    }, 500);
+    }
   });
 }
 
@@ -279,6 +294,11 @@ function hideLoading() {
 // Show empty state
 function showEmpty() {
   hideLoading(); // Ensure loading is hidden
+  // Reset to default empty state message
+  const emptyParagraphs = emptyState.querySelectorAll('p');
+  if (emptyParagraphs[0]) {
+    emptyParagraphs[0].textContent = 'No messages found';
+  }
   emptyState.style.display = 'flex';
   messageList.style.display = 'none';
 }
@@ -292,8 +312,11 @@ function hideEmpty() {
 function showError(message) {
   hideLoading();
   emptyState.style.display = 'flex';
-  emptyState.querySelector('p').textContent = message;
-  emptyState.querySelector('.empty-icon').textContent = '⚠️';
+  const emptyParagraphs = emptyState.querySelectorAll('p');
+  if (emptyParagraphs[0]) {
+    emptyParagraphs[0].textContent = message;
+  }
+  messageList.style.display = 'none';
 }
 
 // Show pin tip if needed

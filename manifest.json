@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "LLM Chat Navigator",
   "version": "1.3.0",
-  "description": "Navigate your LLM conversations with a beautiful, modern interface. Premium UI with dark mode. Supports ChatGPT, Gemini, Claude, and more.",
+  "description": "Navigate your LLM conversations with a beautiful, modern interface. Supports ChatGPT and Gemini.",
   "icons": {
     "16": "icons/icon16.png",
     "48": "icons/icon48.png",
@@ -16,7 +16,6 @@
   "host_permissions": [
     "https://gemini.google.com/*",
     "https://chat.openai.com/*",
-    "https://claude.ai/*",
     "https://chatgpt.com/*"
   ],
   "background": {
@@ -42,7 +41,6 @@
       "matches": [
         "https://gemini.google.com/*",
         "https://chat.openai.com/*",
-        "https://claude.ai/*",
         "https://chatgpt.com/*"
       ],
       "js": ["content_script.js"],

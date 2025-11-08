@@ -5,8 +5,7 @@
 const SUPPORTED_URLS = [
   'gemini.google.com',
   'chat.openai.com',
-  'chatgpt.com',
-  'claude.ai'
+  'chatgpt.com'
 ];
 
 // Function to check if a URL is supported

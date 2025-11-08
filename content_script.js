@@ -47,24 +47,6 @@ const SITE_CONFIGS = {
       ],
       chatContainer: 'main, .conversation-container'
     }
-  },
-  'claude.ai': {
-    name: 'Claude',
-    selectors: {
-      // User messages in Claude (Updated - Claude's UI changes frequently!)
-      userMessages: 'div[data-testid="user-message"], .font-claude-message[data-is-user="true"]',
-      fallbackSelectors: [
-        '[data-is-user-msg="true"]',
-        '[data-testid*="user"]',
-        'div.font-user',
-        '.user-message',
-        '[data-side="user"]',
-        '.font-user-message',
-        'div[class*="UserMessage"]',
-        'div[class*="user-message"]'
-      ],
-      chatContainer: 'main, div[role="presentation"], .conversation-pane, [role="main"]'
-    }
   }
 };
 
@@ -86,7 +68,6 @@ function init() {
   for (const [domain, config] of Object.entries(SITE_CONFIGS)) {
     if (hostname.includes(domain)) {
       currentConfig = config;
-      console.log(`[LLM Chat Navigator] Initialized on ${config.name}`);
       break;
     }
   }
@@ -106,8 +87,6 @@ function init() {
 
 // Reset the message index (when switching chats)
 function resetMessageIndex() {
-  console.log('[LLM Chat Navigator] Resetting message index for new chat');
-  
   // Clear all existing IDs from DOM elements
   const oldElements = document.querySelectorAll('[data-chat-nav-id]');
   oldElements.forEach(el => el.removeAttribute('data-chat-nav-id'));
@@ -129,7 +108,6 @@ function setupUrlChangeDetection() {
   setInterval(() => {
     const newUrl = window.location.href;
     if (newUrl !== currentChatUrl) {
-      console.log('[LLM Chat Navigator] Chat URL changed, resetting index');
       resetMessageIndex();
     }
   }, 1000); // Check every second
@@ -165,29 +143,21 @@ function scanPage() {
   let userMessages = [];
 
   // Try primary selector
-  console.log(`[LLM Chat Navigator] Trying primary selector: ${selectors.userMessages}`);
   userMessages = Array.from(document.querySelectorAll(selectors.userMessages));
-  console.log(`[LLM Chat Navigator] Primary selector found: ${userMessages.length} elements`);
 
   // Try fallback selectors if primary fails
   if (userMessages.length === 0) {
-    console.log(`[LLM Chat Navigator] Primary failed, trying ${selectors.fallbackSelectors.length} fallback selectors...`);
     for (const fallbackSelector of selectors.fallbackSelectors) {
       try {
         userMessages = Array.from(document.querySelectorAll(fallbackSelector));
         if (userMessages.length > 0) {
-          console.log(`[LLM Chat Navigator] ✅ Using fallback selector: ${fallbackSelector} (found ${userMessages.length})`);
           break;
-        } else {
-          console.log(`[LLM Chat Navigator] ❌ Fallback selector found 0: ${fallbackSelector}`);
         }
       } catch (error) {
         console.warn(`[LLM Chat Navigator] ⚠️ Error with selector ${fallbackSelector}:`, error);
       }
     }
   }
-
-  console.log(`[LLM Chat Navigator] Final result: Found ${userMessages.length} user messages`);
 
   // Process each message
   userMessages.forEach((element) => {
@@ -219,19 +189,89 @@ function processMessage(element) {
 
 // Extract text content from a message element
 function extractMessageText(element) {
-  // Get text content, clean it up
   let text = element.innerText || element.textContent || '';
+  let attachmentInfo = [];
+
+  // Check for images - be more specific
+  const images = element.querySelectorAll('img[src]');
   
-  // Truncate if too long (for display purposes)
-  const maxLength = 150;
-  if (text.length > maxLength) {
-    text = text.substring(0, maxLength) + '...';
+  if (images.length > 0) {
+    // Filter out tiny icons and UI elements (likely not user-uploaded images)
+    const actualImages = Array.from(images).filter(img => {
+      const width = img.width || img.naturalWidth || 0;
+      const height = img.height || img.naturalHeight || 0;
+      const src = img.src || '';
+      
+      // Exclude very small images (likely icons)
+      if (width > 0 && height > 0 && (width < 32 || height < 32)) {
+        return false;
+      }
+      
+      // Exclude common icon patterns in src
+      if (src.includes('icon') || src.includes('avatar') || src.includes('logo')) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    if (actualImages.length > 0) {
+      attachmentInfo.push(`� ${actualImages.length} image${actualImages.length > 1 ? 's' : ''}`);
+    }
+  }
+
+  // Check for file attachments - be more specific
+  const fileSelectors = [
+    'a[download]', // Download links
+    '[class*="attachment"][class*="file"]', // Elements with both attachment and file
+    '[data-file-name]', // Explicit file data attributes
+    '[aria-label*="attached file"]',
+    '[aria-label*="uploaded file"]'
+  ];
+  
+  let fileCount = 0;
+  fileSelectors.forEach(selector => {
+    try {
+      const elements = element.querySelectorAll(selector);
+      fileCount += elements.length;
+    } catch (e) {
+      // Ignore selector errors
+    }
+  });
+
+  if (fileCount > 0) {
+    attachmentInfo.push(`� ${fileCount} file${fileCount > 1 ? 's' : ''}`);
+  }
+
+  // Check for code blocks
+  const codeBlocks = element.querySelectorAll('pre code, code[class*="language-"], .code-block');
+  if (codeBlocks.length > 0) {
+    const codeCount = codeBlocks.length;
+    attachmentInfo.push(`💻 ${codeCount} code block${codeCount > 1 ? 's' : ''}`);
   }
 
   // Clean up whitespace
   text = text.trim().replace(/\s+/g, ' ');
 
-  return text || '[Empty message]';
+  // Combine text with attachment info
+  let finalText = '';
+  
+  if (attachmentInfo.length > 0) {
+    finalText = attachmentInfo.join(' · ');
+    if (text && text.length > 0) {
+      finalText += ' · ' + text;
+    }
+  } else {
+    finalText = text;
+  }
+
+  // Truncate if too long (for display purposes)
+  const maxLength = 150;
+  if (finalText.length > maxLength) {
+    finalText = finalText.substring(0, maxLength) + '...';
+  }
+
+  return finalText || '[Empty message]';
 }
 
 // Set up MutationObserver to detect new messages
@@ -273,8 +313,6 @@ function setupMutationObserver() {
     childList: true,
     subtree: true
   });
-
-  console.log('[LLM Chat Navigator] MutationObserver set up');
 }
 
 // Scroll to a specific message
